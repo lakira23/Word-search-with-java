@@ -56,6 +56,23 @@ public class Snakes_and_ladders {
 	static String current_button = "";
 	static SwiftBotAPI swiftBot = SwiftBotAPI.INSTANCE;
 
+	private static void player_setup() {	
+	}
+	
+	private static void Board_setup() {
+		
+	}
+	
+	private static void Mode_selection() {
+		
+	}
+	
+	private static void Decide_start_player() {
+		
+	}
+	
+	
+	
 	private static void menu() {
 		System.out.println("Press [Y] in the SwiftBot to start the game! ");
 
@@ -65,6 +82,13 @@ public class Snakes_and_ladders {
 			if (current_button == "Y") {
 				System.out.println("");
 				System.out.println("Welcome to Snakes and Ladders!");
+				
+				player_setup();
+				Board_setup();
+				Mode_selection();
+				Decide_start_player();
+	
+				
 				break;
 			}
 		}	
