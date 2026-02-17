@@ -4,7 +4,7 @@ public class Scooter extends Vehicle
 {
 	public Scooter()
 	{
-		super(2, 0);
+		super(2, 0,40);
 	}
 	public void display()
 	{

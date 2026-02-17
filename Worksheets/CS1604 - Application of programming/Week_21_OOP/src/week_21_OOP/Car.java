@@ -4,7 +4,7 @@ public class Car extends Vehicle
 {
 	public Car()
 	{
-		super(4, 4);
+		super(4, 4,200);
 	}
 	public void display()
 	{
