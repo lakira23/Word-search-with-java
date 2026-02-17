@@ -10,7 +10,6 @@ public class Vehicle
 	{
 		nwheels = nw;
 		nseats = num_seats; 
-		
 		max_speed = ms;
 	}
 	public void display()
