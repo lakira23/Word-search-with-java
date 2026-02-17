@@ -14,6 +14,13 @@ public class InheritanceTest {
 		Scooter sc = new Scooter();
 		sc.display();
 		
+		if (sc instanceof Scooter) {
+			System.out.println("yes that is true");
+			}
+			if (sc instanceof Vehicle) {
+			System.out.println("yes that is true too");
+			}
+		
 		
 	}
 }
