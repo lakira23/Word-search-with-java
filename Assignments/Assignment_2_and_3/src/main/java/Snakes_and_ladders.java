@@ -1,4 +1,5 @@
 //________imports______________
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -99,15 +100,45 @@ class Ladders extends Connectors {
 	}
 }
 
-class Users {
-	int pos;
-	public Users() {
-
+class Players {
+	static Random random = new Random();
+	protected int pos;
+	private String name;
+	
+	public Players(String player_name) {
+		pos = 1;
+		this.name = player_name;
 	}
 
+	public String get_name() {
+		return this.name;
+	}
+	
 	public int get_pos() {
 		return this.pos;
 	}
+	
+	public int get_dice_num() {
+		int dice_min = 1;
+		int dice_max = 6;
+		
+		return random.nextInt(dice_max - dice_min + 1) + dice_min;
+	}
+}
+
+class Users extends Players{
+	public Users(String player_name){
+		super(player_name);
+	}
+	
+}
+
+class SwiftBot_class extends Players{
+
+	public SwiftBot_class(String player_name) {
+		super(player_name);
+	}
+	
 }
 
 public class Snakes_and_ladders {
@@ -115,6 +146,11 @@ public class Snakes_and_ladders {
 	static ArrayList<Snakes> snakes_obj;
 	static ArrayList<Ladders> ladders_obj;
 	static ArrayList<Connectors> connectors_obj;
+	static ArrayList<Players> players_obj = new ArrayList<Players>();
+	static ArrayList<Users> users_obj = new ArrayList<Users>();
+	static SwiftBot_class swiftbot_obj;
+
+	static int num_players = 2;
 
 	static String DICE_ASCII_ART = "  "
 			+ "____\r\n"
@@ -129,7 +165,6 @@ public class Snakes_and_ladders {
 	static HashMap<String,Boolean> current_screen = new HashMap<>(Map.of(
 			"Menu", true,
 			"Game", false));
-	static String user_name;
 	static int [][] board = {	
 			{21,22,23,24,25},
 			{20,19,18,17,16},
@@ -139,11 +174,20 @@ public class Snakes_and_ladders {
 
 	private static void player_setup() {
 		Scanner text = new Scanner(System.in);
-		System.out.println("Please enter your name >>  ");
-		user_name = text.nextLine();
-		System.out.println("");
+	
+		for (int i = 0; i < num_players - 1; i++) { //-1 cos to not include the swiftbot
+			System.out.println("Please enter your name player "+ (i+1) +" >> ");
+			Users a_user = new Users(text.nextLine());
+			
+			users_obj.add(a_user);
+			players_obj.add(a_user);
+			
+			System.out.println(" ");	
+		}
+		
 		System.out.println("The SwiftBot has been assigned the following name:");
-		System.out.println("> SwiftBot");
+		swiftbot_obj = new SwiftBot_class("The SwiftBot");
+		System.out.println("> " + swiftbot_obj.get_name());
 		text.close();
 	}
 
@@ -179,16 +223,30 @@ public class Snakes_and_ladders {
 	}
 
 	private static void Decide_start_player() {
-		System.out.println(DICE_ASCII_ART);
-		System.out.println("DICE ROLL...");
+		ArrayList<Integer> roll_results = new ArrayList<Integer>();
+		
+		System.out.println("");
+		System.out.println("Deciding starting player :-");
 
-		System.out.println("Press [A] to perform dice roll >");
-
-		if (input("A")) {
-			System.out.println("Dice ROll!");
-	
+		for (int i = 0; i < num_players - 1; i++) {
+			System.out.println(users_obj.get(i).get_name()+" press [A] in the Swiftbot to perform dice roll >");
+			
+			if (input("A")) {
+				System.out.println(DICE_ASCII_ART);
+				System.out.println("DICE ROLL...");
+				
+				int each_diceroll = users_obj.get(i).get_dice_num();
+				System.out.println(users_obj.get(i).get_name()+" rolled a "+ each_diceroll);
+				roll_results.add(each_diceroll);
+				System.out.println(" ");
+			}
 		}
-
+		
+		//swiftbot roll
+		
+		System.out.println(DICE_ASCII_ART);
+		
+		
 	}
 
 
