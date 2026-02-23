@@ -7,7 +7,7 @@ public class device_cam_task
 {
 	public static void main(String[] args) 
 	{
-		OpenCV.loadLocally();
+		//OpenCV.loadLocally();
 		VideoCapture camera = new VideoCapture(0); //the zero is for the first available cam
 		
 		
@@ -23,6 +23,6 @@ public class device_cam_task
 		camera.read(frame);
  
 		//Save the picture
-		Imgcodecs.imwrite("c:\\temp\\image.png", frame);
+		Imgcodecs.imwrite("C:\\Users\\lakir\\OneDrive - Brunel University London\\Worksheets\\CS1604 - Programming Applications\\week 19 - Image_processing\\pccamera_pic.png", frame);
 	}
 }
