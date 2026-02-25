@@ -13,6 +13,7 @@ public class Shape {
 		System.out.println("Rectangle area="+l*b);
 	}
 }
+
 class TestShape {
 	public static void main(String[] args) {
 		Shape myShape = new Shape();
@@ -22,3 +23,5 @@ class TestShape {
 	}
 
 }
+
+
