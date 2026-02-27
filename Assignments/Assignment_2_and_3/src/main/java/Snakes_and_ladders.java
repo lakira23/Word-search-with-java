@@ -2,6 +2,7 @@
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
@@ -35,8 +36,8 @@ class Connectors {
 
 	private int generate_head(ArrayList<Connectors> list_connectors) {
 
-		int head_min = 6;
-		int head_max = 20;
+		int head_min = 2;
+		int head_max = 24;
 
 		while (true) {
 			head = random.nextInt(head_max - head_min + 1) + head_min;
@@ -48,7 +49,7 @@ class Connectors {
 	}
 
 	private int generate_tail(ArrayList<Connectors> list_connectors) {
-		int tail_min = 1;
+		int tail_min = 2;
 		int tail_max = 24;
 
 		int headrow = (this.head - 1) / 5;
@@ -104,7 +105,7 @@ class Players {
 	static Random random = new Random();
 	protected int pos;
 	private String name;
-	
+
 	public Players(String player_name) {
 		pos = 1;
 		this.name = player_name;
@@ -113,15 +114,15 @@ class Players {
 	public String get_name() {
 		return this.name;
 	}
-	
+
 	public int get_pos() {
 		return this.pos;
 	}
-	
+
 	public int get_dice_num() {
 		int dice_min = 1;
 		int dice_max = 6;
-		
+
 		return random.nextInt(dice_max - dice_min + 1) + dice_min;
 	}
 }
@@ -130,7 +131,7 @@ class Users extends Players{
 	public Users(String player_name){
 		super(player_name);
 	}
-	
+
 }
 
 class SwiftBot_class extends Players{
@@ -138,7 +139,7 @@ class SwiftBot_class extends Players{
 	public SwiftBot_class(String player_name) {
 		super(player_name);
 	}
-	
+
 }
 
 public class Snakes_and_ladders {
@@ -150,6 +151,8 @@ public class Snakes_and_ladders {
 	static ArrayList<Users> users_obj = new ArrayList<Users>();
 	static SwiftBot_class swiftbot_obj;
 
+	static String pressed_button;
+
 	static int num_players = 2;
 
 	static String DICE_ASCII_ART = "  "
@@ -160,7 +163,6 @@ public class Snakes_and_ladders {
 			+ " \\/___/  \\'  '\\  /\r\n"
 			+ "          \\'__'\\/\r\n";
 
-	static String current_button = "";
 	static SwiftBotAPI swiftBot = SwiftBotAPI.INSTANCE;
 	static HashMap<String,Boolean> current_screen = new HashMap<>(Map.of(
 			"Menu", true,
@@ -174,21 +176,24 @@ public class Snakes_and_ladders {
 
 	private static void player_setup() {
 		Scanner text = new Scanner(System.in);
-	
+
+		//makes the users
 		for (int i = 0; i < num_players - 1; i++) { //-1 cos to not include the swiftbot
 			System.out.println("Please enter your name player "+ (i+1) +" >> ");
 			Users a_user = new Users(text.nextLine());
-			
+
 			users_obj.add(a_user);
 			players_obj.add(a_user);
-			
+
 			System.out.println(" ");	
 		}
-		
 		System.out.println("The SwiftBot has been assigned the following name:");
+
+		//makes the swiftbot
 		swiftbot_obj = new SwiftBot_class("The SwiftBot");
+		players_obj.add(swiftbot_obj);
 		System.out.println("> " + swiftbot_obj.get_name());
-		text.close();
+
 	}
 
 	private static void Board_setup() {
@@ -199,6 +204,7 @@ public class Snakes_and_ladders {
 		ladders_obj = new ArrayList<Ladders>();
 		connectors_obj = new ArrayList<Connectors>();
 
+		//makes the snakes
 		System.out.println("Snakes: ");
 		for (int i = 0; i < num_of_snakes; i++) {
 			Snakes a_snake = new Snakes(connectors_obj);
@@ -207,6 +213,8 @@ public class Snakes_and_ladders {
 			System.out.println("> Snake "+(i + 1)+" - Head Square " + a_snake.get_head() + "--> Tail Square " + a_snake.get_tail());
 		}
 		System.out.println("");
+
+		//makes the ladders
 		System.out.println("Ladders: ");
 
 		for (int i = 0; i < num_of_ladders; i++) {
@@ -219,34 +227,51 @@ public class Snakes_and_ladders {
 	}
 
 	private static void Mode_selection() {
+		System.out.println("Select a game mode by pressing the buttons: ");
+		System.out.println("-----------------------------------------------------------------");
+		System.out.println("[A] Mode A - Normal Gameplay");
+		System.out.println("[B] Mode B - User power to manually override SwiftBot movements");
+		System.out.println("");
+		System.out.println("Please press the buttons in the swiftBot > ");
+
+		String choice = input_handler(List.of("A","B"));
+		if (choice.equals("A")) {
+			System.out.println("Normal mode selected.");
+		}
+		else if (choice.equals("B")) {
+			System.out.println("Override mode selected.");
+		}
+
+
 
 	}
 
 	private static void Decide_start_player() {
 		ArrayList<Integer> roll_results = new ArrayList<Integer>();
-		
+
 		System.out.println("");
 		System.out.println("Deciding starting player :-");
 
 		for (int i = 0; i < num_players - 1; i++) {
 			System.out.println(users_obj.get(i).get_name()+" press [A] in the Swiftbot to perform dice roll >");
-			
-			if (input("A")) {
+
+			String choice = input_handler(List.of("A"));
+			if (choice.equals("Y")) {
 				System.out.println(DICE_ASCII_ART);
 				System.out.println("DICE ROLL...");
-				
+
 				int each_diceroll = users_obj.get(i).get_dice_num();
 				System.out.println(users_obj.get(i).get_name()+" rolled a "+ each_diceroll);
 				roll_results.add(each_diceroll);
 				System.out.println(" ");
 			}
 		}
-		
+
 		//swiftbot roll
-		
+
 		System.out.println(DICE_ASCII_ART);
-		
-		
+
+
 	}
 
 
@@ -255,8 +280,9 @@ public class Snakes_and_ladders {
 		System.out.println("Press [Y] in the SwiftBot to start the game! ");
 
 		while (current_screen.get("Menu")) {
-	
-			if (input("Y")) {
+
+			String choice = input_handler(List.of("Y"));
+			if (choice.equals("Y")) {
 				System.out.println("");
 				System.out.println("Welcome to Snakes and Ladders!");
 				current_screen.replace("Menu", false);
@@ -275,37 +301,51 @@ public class Snakes_and_ladders {
 
 	}
 
-		
-	private static void invalid_button_response(String buttons_pressed, String required_input) {
-		if (!required_input.equals(current_button)) {
-			System.out.println("[Error!] invalid option selected, please select ["+required_input+"] in the SwiftBot.");
-		}
-	}
-	public static boolean input(String required_input) {
+	private static String input_handler(List<String> possible_inputs) {
+
+		List<String> all_inputs = List.of("A","B","X","Y");
+
 		while (true) {
-			try {
-				swiftBot.disableButton(Button.A);
-				swiftBot.disableButton(Button.B);
-				swiftBot.disableButton(Button.X);
-				swiftBot.disableButton(Button.Y);
+			String pressed_button = input();
 
-				swiftBot.enableButton(Button.A, () -> {System.out.println(" ");System.out.println("A been pressed"); current_button = "A"; invalid_button_response("A", required_input);});
-				swiftBot.enableButton(Button.B, () -> {System.out.println(" ");System.out.println("B been pressed"); current_button = "B"; invalid_button_response("B", required_input);});
-				swiftBot.enableButton(Button.X, () -> {System.out.println(" ");System.out.println("X been pressed"); current_button = "X"; invalid_button_response("X", required_input);});
-				swiftBot.enableButton(Button.Y, () -> {System.out.println(" ");System.out.println("Y been pressed"); current_button = "Y"; invalid_button_response("Y", required_input);});
-
-				if (required_input.equals(current_button)) {
-					current_button = "";
-							return true;
-				}
+			if (possible_inputs.contains(pressed_button)){ //checks if its one of the required inputs
+				return pressed_button;
 			}
 
-
-			catch (Exception e) {
-				System.out.println("Error has occured!!");
+			else if (all_inputs.contains(pressed_button)) { //checks if its one of the possible inputs
+				System.out.println("[Error!] invalid option selected, please select "+possible_inputs+ "in the SwiftBot.");
 			}
 		}
 	}
+
+	public static String input() {
+
+		pressed_button = "";
+		try {
+			swiftBot.disableButton(Button.A);
+			swiftBot.disableButton(Button.B);
+			swiftBot.disableButton(Button.X);
+			swiftBot.disableButton(Button.Y);
+
+			swiftBot.enableButton(Button.A, () -> {System.out.println(" ");System.out.println("A been pressed"); pressed_button = "A";});
+			swiftBot.enableButton(Button.B, () -> {System.out.println(" ");System.out.println("B been pressed"); pressed_button = "B";});
+			swiftBot.enableButton(Button.X, () -> {System.out.println(" ");System.out.println("X been pressed"); pressed_button = "X";});
+			swiftBot.enableButton(Button.Y, () -> {System.out.println(" ");System.out.println("Y been pressed"); pressed_button = "Y";});
+
+			//not enough time so sometimes the previous input in given out
+			while (pressed_button.equals("")) {
+				Thread.sleep(100);
+
+			}
+			return pressed_button;
+		}
+
+		catch (Exception e) {
+			System.out.println("Error has occured!!");
+			return "null";
+		}
+	}
+
 	public static void main(String[] args) {
 
 		menu();
