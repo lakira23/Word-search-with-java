@@ -15,9 +15,16 @@ import swiftbot.SwiftBotAPI;
 class Connectors {
 	protected int head;
 	protected int tail;
+	
 	static Random random = new Random();
-
-	public Connectors(ArrayList<Connectors> list_connectors) {
+	
+	protected int[] head_boundaries; //min, max
+	protected int[] tail_boundaries; //min, max
+	
+	public Connectors(ArrayList<Connectors> list_connectors, int[] head_bounds, int[] tail_bounds) {
+		this.head_boundaries = head_bounds;
+		this.tail_boundaries = tail_bounds;
+		
 		assign_pos(list_connectors);
 
 	}
@@ -36,11 +43,8 @@ class Connectors {
 
 	private int generate_head(ArrayList<Connectors> list_connectors) {
 
-		int head_min = 2;
-		int head_max = 24;
-
 		while (true) {
-			head = random.nextInt(head_max - head_min + 1) + head_min;
+			head = random.nextInt(head_boundaries[1] - head_boundaries[0] + 1) + head_boundaries[0];
 
 			if (!pos_taken(head, list_connectors)) {
 				return head;
@@ -49,13 +53,11 @@ class Connectors {
 	}
 
 	private int generate_tail(ArrayList<Connectors> list_connectors) {
-		int tail_min = 2;
-		int tail_max = 24;
 
 		int headrow = (this.head - 1) / 5;
 
 		while (true) {
-			tail = random.nextInt(tail_max - tail_min + 1) + tail_min;
+			tail = random.nextInt(tail_boundaries[1] - tail_boundaries[0] + 1) + tail_boundaries[0];
 			int tailrow = (this.tail - 1) / 5;
 
 			if (!pos_taken(this.tail, list_connectors) && (tailrow != headrow) && (check_head_and_tail_pos(tail))){
@@ -79,9 +81,9 @@ class Connectors {
 }
 
 class Snakes extends Connectors {
-
+	
 	public Snakes(ArrayList<Connectors> list_connectors) {
-		super(list_connectors);
+		super(list_connectors, new int[] {6,24},new int[] {2,20} );
 	}
 
 	@Override
@@ -92,7 +94,7 @@ class Snakes extends Connectors {
 
 class Ladders extends Connectors {
 	public Ladders(ArrayList<Connectors> list_connectors) {
-		super(list_connectors);
+		super(list_connectors, new int[] {2,20},new int[] {6,24});
 	}
 
 	@Override
@@ -261,8 +263,11 @@ public class Snakes_and_ladders {
 		ArrayList<Integer> user_roll_results = new ArrayList<Integer>();
 
 		System.out.println("");
-		System.out.println("Deciding starting player :-");
-
+		System.out.println("Deciding starting player! :-");
+		Thread.sleep(1500);
+		
+		System.out.println(" ");
+		
 		System.out.println("User's turn: ");
 		for (int i = 0; i < num_players - 1; i++) {
 			System.out.println(users_obj.get(i).get_name()+" press [A] in the Swiftbot to perform dice roll >");
@@ -271,7 +276,7 @@ public class Snakes_and_ladders {
 			if (choice.equals("Y")) {
 				System.out.println(DICE_ASCII_ART);
 				System.out.println("DICE ROLL...");
-				Thread.sleep(250);
+				Thread.sleep(500);
 
 				int each_diceroll = users_obj.get(i).get_dice_num();
 				System.out.println(users_obj.get(i).get_name()+" rolled a "+ each_diceroll);
@@ -386,6 +391,7 @@ public class Snakes_and_ladders {
 	public static void main(String[] args) throws InterruptedException {
 
 		menu();
+		System.out.println("test menu finished");
 		//
 	}
 }
