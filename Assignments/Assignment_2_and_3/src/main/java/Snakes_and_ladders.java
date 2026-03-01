@@ -1,9 +1,6 @@
 //________imports______________
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -146,6 +143,7 @@ class SwiftBot_class extends Players{
 
 public class Snakes_and_ladders {
 
+	//___object holdings
 	static ArrayList<Snakes> snakes_obj;
 	static ArrayList<Ladders> ladders_obj;
 	static ArrayList<Connectors> connectors_obj;
@@ -154,10 +152,12 @@ public class Snakes_and_ladders {
 	static SwiftBot_class swiftbot_obj;
 
 	static String current_mode;
-	static String pressed_button;
-
 	static int num_players = 2;
-	static Players starting_player;
+	static Players current_player;
+	
+	static String pressed_button;
+	
+	static boolean game_over = false;
 
 	static String DICE_ASCII_ART = "  "
 			+ "____\r\n"
@@ -175,6 +175,29 @@ public class Snakes_and_ladders {
 			{11,12,13,14,15},
 			{10,9,8,7,6},
 			{1,2,3,4,5}}; 
+
+	//___________menu
+	
+	private static void menu() throws InterruptedException {
+		System.out.println("Press [Y] in the SwiftBot to start the game! ");
+
+		String choice = input_handler(List.of("Y"));
+		if (choice.equals("Y")) {
+			System.out.println("");
+			System.out.println("Welcome to Snakes and Ladders!");
+		}
+		else {
+			System.out.println("Error! invalid option selected");
+		}
+
+		player_setup();
+		Board_setup();
+		Mode_selection();
+		Decide_start_player();
+
+
+
+	}
 
 	private static void player_setup() throws InterruptedException {
 		Scanner text = new Scanner(System.in);
@@ -298,13 +321,11 @@ public class Snakes_and_ladders {
 		while (true) {
 			swiftbot_dice_roll_num = swiftbot_obj.get_dice_num();
 
-			System.out.println("test");
-
 			if (!user_roll_results.contains(swiftbot_dice_roll_num)) {
 				break;
 			}
 		}
-		
+
 		System.out.println(swiftbot_obj.get_name() + " rolled a " + swiftbot_dice_roll_num);
 
 		//comparing all the users
@@ -319,39 +340,44 @@ public class Snakes_and_ladders {
 		}
 
 		if (highest_user_roll > swiftbot_dice_roll_num) {
-			starting_player = users_obj.get(highest_user_array_index);
+			current_player = users_obj.get(highest_user_array_index);
 		}
 		else {
-			starting_player = swiftbot_obj;
+			current_player = swiftbot_obj;
 		}
 
-		System.out.println(starting_player.get_name() + " is the starting player!");
+		System.out.println(current_player.get_name() + " is the starting player!");
 
 	}
-
-
-
-	private static void menu() throws InterruptedException {
-		System.out.println("Press [Y] in the SwiftBot to start the game! ");
-
-		String choice = input_handler(List.of("Y"));
-		if (choice.equals("Y")) {
-			System.out.println("");
-			System.out.println("Welcome to Snakes and Ladders!");
+	//_________game
+	private static void main_game() {
+		
+		int current_player_index = players_obj.indexOf(current_player);
+		current_player = players_obj.get(current_player_index);
+		
+		while (!game_over) {
+			if (current_player instanceof SwiftBot_class) {
+				//player is the swiftbot
+				swiftbot_turn();
+			}
+			else {
+				//current player is a user
+				user_turn();
+			}
+			current_player_index = (current_player_index + 1) % players_obj.size(); //mimics a cyclical structure
 		}
-		else {
-			System.out.println("Error! invalid option selected");
-		}
-
-		player_setup();
-		Board_setup();
-		Mode_selection();
-		Decide_start_player();
-
-
-
+		
 	}
-
+	
+	private static void user_turn() {
+		
+	}
+	
+	private static void swiftbot_turn() {
+		
+	}
+	
+	//_________input handling
 	private static String input_handler(List<String> possible_inputs) {
 
 		List<String> all_inputs = List.of("A","B","X","Y");
@@ -397,10 +423,11 @@ public class Snakes_and_ladders {
 		}
 	}
 
+
 	public static void main(String[] args) throws InterruptedException {
 
 		menu();
-		System.out.println("test menu finished");
+		main_game();
 		System.exit(0);
 		//
 	}
