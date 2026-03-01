@@ -209,6 +209,7 @@ public class Snakes_and_ladders {
 
 		//makes the snakes
 		try { 
+			System.out.println("");
 			System.out.println("Snakes: ");
 			for (int i = 0; i < num_of_snakes; i++) {
 				Snakes a_snake = new Snakes(connectors_obj);
