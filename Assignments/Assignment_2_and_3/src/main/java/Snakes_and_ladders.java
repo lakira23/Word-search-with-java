@@ -1,4 +1,11 @@
 //________imports______________
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -75,8 +82,15 @@ class Connectors {
 	public int get_tail() {
 		return this.tail;
 	}
-}
 
+	public void player_connector_interaction(Players player,String connector_type) {
+		if (player.get_pos() == this.head) {
+			System.out.println(player.get_name() + " has facen a "+connector_type+" in position "+ this.head );
+			System.out.println(player.get_name() + " will move to " + this.tail);
+			player.set_pos(this.tail);
+		}
+	}
+}
 class Snakes extends Connectors {
 
 	public Snakes(ArrayList<Connectors> list_connectors) {
@@ -86,6 +100,10 @@ class Snakes extends Connectors {
 	@Override
 	protected boolean check_head_and_tail_pos(int tail) {
 		return this.head > tail; 
+	}
+
+	public void player_connector_interaction(Players player) {
+		super.player_connector_interaction(player,"snake");
 	}
 }
 
@@ -97,6 +115,10 @@ class Ladders extends Connectors {
 	@Override
 	protected boolean check_head_and_tail_pos(int tail) {
 		return tail > this.head ; 
+	}
+
+	public void player_connector_interaction(Players player) {
+		super.player_connector_interaction(player,"ladder");
 	}
 }
 
@@ -123,6 +145,10 @@ class Players {
 		int dice_max = 6;
 
 		return random.nextInt(dice_max - dice_min + 1) + dice_min;
+	}
+
+	public void set_pos(int new_pos) {
+		this.pos = new_pos;
 	}
 }
 
@@ -154,9 +180,9 @@ public class Snakes_and_ladders {
 	static String current_mode;
 	static int num_players = 2;
 	static Players current_player;
-	
+
 	static String pressed_button;
-	
+
 	static boolean game_over = false;
 
 	static String DICE_ASCII_ART = "  "
@@ -176,8 +202,11 @@ public class Snakes_and_ladders {
 			{10,9,8,7,6},
 			{1,2,3,4,5}}; 
 
+	static int[] BLUE = {0,0,255};
+	static int[] RED = {0,255,0};
+
 	//___________menu
-	
+
 	private static void menu() throws InterruptedException {
 		System.out.println("Press [Y] in the SwiftBot to start the game! ");
 
@@ -188,6 +217,8 @@ public class Snakes_and_ladders {
 		}
 		else {
 			System.out.println("Error! invalid option selected");
+			swiftBot.fillUnderlights(RED);
+			Thread.sleep(200);
 		}
 
 		player_setup();
@@ -214,11 +245,11 @@ public class Snakes_and_ladders {
 		}
 		System.out.println("The SwiftBot has been assigned the following name:");
 
-		Thread.sleep(1000);
 		//makes the swiftbot
 		swiftbot_obj = new SwiftBot_class("The SwiftBot");
 		players_obj.add(swiftbot_obj);
 		System.out.println("> " + swiftbot_obj.get_name());
+		Thread.sleep(1000);
 
 	}
 
@@ -350,11 +381,10 @@ public class Snakes_and_ladders {
 
 	}
 	//_________game
-	private static void main_game() {
-		
+	private static void main_game() throws InterruptedException, IOException {
+
 		int current_player_index = players_obj.indexOf(current_player);
-		current_player = players_obj.get(current_player_index);
-		
+
 		while (!game_over) {
 			if (current_player instanceof SwiftBot_class) {
 				//player is the swiftbot
@@ -364,28 +394,91 @@ public class Snakes_and_ladders {
 				//current player is a user
 				user_turn();
 			}
+
+			if (current_player.get_pos() == 5 || current_player.get_pos() == 25) {
+				quit_handling();
+			}
+
 			current_player_index = (current_player_index + 1) % players_obj.size(); //mimics a cyclical structure
+			current_player = players_obj.get(current_player_index);
+			System.out.println("");
+			System.out.println("The current player is: " + current_player.get_name());
+		}
+
+	}
+
+	private static void user_turn() throws InterruptedException {
+		System.out.println("");
+		System.out.println(current_player.get_name()+" press [A] in the Swiftbot to perform dice roll >");
+
+		String choice = input_handler(List.of("A"));
+
+		if (choice.equals("A")) {
+			System.out.println(DICE_ASCII_ART);
+			System.out.println("DICE ROLL...");
+			Thread.sleep(500);
+
+			int user_diceroll = current_player.get_dice_num();
+
+			user_movements(user_diceroll);
+			
+			
+
+			
+
+		}
+	}
+
+	private static void user_movements(int user_dice) {
+		int user_last_pos = current_player.get_pos();
+		int user_new_pos = user_last_pos + user_dice ;
+		
+		System.out.println("");
+		System.out.println(current_player.get_name() + " rolled a " + user_dice + " and moved from:");
+		System.out.println(user_last_pos + " to " + user_new_pos);
+		System.out.println("");
+		
+		if (user_new_pos > 25) {
+			System.out.println("Please get a number which is less than or equal to 25!");
+			System.out.println(current_player.get_name() + " returned to position : "+ user_last_pos);
+			return;
+		}
+		else {
+			current_player.set_pos(user_new_pos);
 		}
 		
+		System.out.println(" ");
+		snake_checker();
+		ladder_checker();
 	}
-	
-	private static void user_turn() {
-		
-	}
-	
+
 	private static void swiftbot_turn() {
-		
+		System.out.println("lwky swiftbot's turn but skip");
 	}
-	
+
+	private static void snake_checker() {
+		for (Snakes each_snake: snakes_obj) {
+			each_snake.player_connector_interaction(current_player);
+		}
+	}
+
+
+	private static void ladder_checker() {
+		for (Ladders each_ladder: ladders_obj) {
+			each_ladder.player_connector_interaction(current_player);
+		}
+	}
+
 	//_________input handling
 	private static String input_handler(List<String> possible_inputs) {
-
+		swiftBot.fillButtonLights();
 		List<String> all_inputs = List.of("A","B","X","Y");
 
 		while (true) {
 			String pressed_button = input();
 
 			if (possible_inputs.contains(pressed_button)){ //checks if its one of the required inputs
+				swiftBot.disableButtonLights();
 				return pressed_button;
 			}
 
@@ -423,8 +516,72 @@ public class Snakes_and_ladders {
 		}
 	}
 
+	//________game end handling
+	private static void quit_handling() throws IOException, InterruptedException {
+		System.out.println("The current position of " + current_player.get_name() + " is " + current_player.get_pos());
+		System.out.println("please press [X] in the SwiftBot if you would like to quit");
 
-	public static void main(String[] args) throws InterruptedException {
+		String choice;
+		if (current_player.get_pos() == 5) {
+			choice = input_handler(List.of("X","Y","A","B"));
+		}
+		else {
+			choice = input_handler(List.of("X"));
+		}
+
+		if (choice.equals("X")) {
+			game_over = true;
+			game_termination_logging();
+		}
+	}
+
+	private static void game_termination_logging() throws IOException, InterruptedException {
+		LocalDateTime myDateObj = LocalDateTime.now();
+		DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy.MM.dd.hh.mm.ss");
+
+		String formatted_datetime = myDateObj.format(myFormatObj);
+		String fileName = "Snake_ladders_log_" + formatted_datetime;
+		File logfile = new File(fileName);
+		FileWriter writer = new FileWriter(logfile);
+
+		for (Players each_player : players_obj) {
+			writer.write(each_player.get_name() + " pos > " + each_player.get_pos() + "\n");
+		}
+		writer.write("------------------------------------------\n");
+
+		for (int i = 0; i < snakes_obj.size(); i++) {
+			writer.write("Snake " + i + " head: " + snakes_obj.get(i).get_head() + "\n");
+			writer.write("Snake " + i + " tail: " + snakes_obj.get(i).get_tail() + "\n");
+		}
+		writer.write("------------------------------------------\n");
+
+		for (int i = 0; i < ladders_obj.size(); i++) {
+			writer.write("Ladder " + i + " head: " + ladders_obj.get(i).get_head()  + "\n");
+			writer.write("Ladder " + i + " tail: " + ladders_obj.get(i).get_tail()  + "\n");
+		}
+		writer.write("------------------------------------------\n");
+
+		writer.write(formatted_datetime);
+
+		Players game_winner = current_player;
+		System.out.println(game_winner.get_name() + " is the winner!");
+
+		writer.close();
+		
+		if (game_winner instanceof Users) {
+			swiftBot.fillUnderlights(BLUE);
+			Thread.sleep(300);
+		}
+		else if (game_winner instanceof SwiftBot_class) {
+			swiftBot.fillUnderlights(RED);
+			Thread.sleep(500);
+		}
+		swiftBot.disableUnderlights();
+
+	}
+
+
+	public static void main(String[] args) throws InterruptedException, IOException {
 
 		menu();
 		main_game();
