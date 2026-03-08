@@ -2,14 +2,13 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+
 
 import swiftbot.Button;
 import swiftbot.SwiftBotAPI;
@@ -167,6 +166,18 @@ class SwiftBot_class extends Players{
 
 }
 
+class Colours {
+
+	public static final String RESET = "\u001B[0m";
+	public static final String RED = "\u001B[31m";
+	public static final String GREEN = "\u001B[32m";
+	public static final String YELLOW = "\u001B[33m";
+	public static final String BLUE = "\u001B[34m";
+	public static final String CYAN = "\u001B[36m";
+	public static final String BOLD = "\u001B[1m";
+
+}
+
 public class Snakes_and_ladders {
 
 	//___object holdings
@@ -182,6 +193,15 @@ public class Snakes_and_ladders {
 	static Players current_player;
 
 	static String pressed_button;
+
+	static int swiftbot_physical_pos = 1;
+	static int pos_changer;
+	static int WHEEL_POWER = 50; //limited power to reduce slipping
+	static int TURN_90_TIME = 510;//miliseconds in plywood
+	static double POWER_SPEED =  0.4212 * WHEEL_POWER; //motor power cofient for linear callibration.
+	static int FORWARD_TIME = 850; //miliseoncds for 25 cm of travel
+	static int WHEEL_CALLIBRATION_SYMETRY = -10;
+	static String SwiftBot_orientation = "East";
 
 	static boolean game_over = false;
 
@@ -204,21 +224,27 @@ public class Snakes_and_ladders {
 
 	static int[] BLUE = {0,0,255};
 	static int[] RED = {0,255,0};
+	static int[] ORANGE = {255,165,0};
 
 	//___________menu
 
 	private static void menu() throws InterruptedException {
+		System.out.println(
+				Colours.CYAN + Colours.BOLD +
+				"====================================\n" +
+				"     SWIFTBOT SNAKES AND LADDERS    \n" +
+				"===================================="
+				+ Colours.RESET);
+
 		System.out.println("Press [Y] in the SwiftBot to start the game! ");
 
 		String choice = input_handler(List.of("Y"));
 		if (choice.equals("Y")) {
 			System.out.println("");
-			System.out.println("Welcome to Snakes and Ladders!");
+			System.out.println(Colours.BOLD + Colours.CYAN +"Welcome to Snakes and Ladders!" + Colours.RESET);
 		}
 		else {
-			System.out.println("Error! invalid option selected");
-			swiftBot.fillUnderlights(RED);
-			Thread.sleep(200);
+			error("invalid option selected, please select [Y]");
 		}
 
 		player_setup();
@@ -293,7 +319,7 @@ public class Snakes_and_ladders {
 
 	}
 
-	private static void Mode_selection() {
+	private static void Mode_selection() throws InterruptedException {
 		System.out.println("Select a game mode by pressing the buttons: ");
 		System.out.println("-----------------------------------------------------------------");
 		System.out.println("[A] Mode A - Normal Gameplay");
@@ -331,7 +357,7 @@ public class Snakes_and_ladders {
 			String choice = input_handler(List.of("A"));
 			if (choice.equals("A")) {
 				System.out.println(DICE_ASCII_ART);
-				System.out.println("DICE ROLL...");
+				System.out.println(Colours.YELLOW + "DICE ROLL..." + Colours.RESET);
 				Thread.sleep(500);
 
 				int each_diceroll = users_obj.get(i).get_dice_num();
@@ -346,7 +372,7 @@ public class Snakes_and_ladders {
 		Thread.sleep(1000);
 		System.out.println("SwiftBot's turn: ");
 		System.out.println(DICE_ASCII_ART);
-		System.out.println("DICE ROLL...");
+		System.out.println(Colours.YELLOW + "DICE ROLL..." + Colours.RESET);
 
 		int swiftbot_dice_roll_num;
 		while (true) {
@@ -415,29 +441,24 @@ public class Snakes_and_ladders {
 
 		if (choice.equals("A")) {
 			System.out.println(DICE_ASCII_ART);
-			System.out.println("DICE ROLL...");
+			System.out.println(Colours.YELLOW +"DICE ROLL..." + Colours.RESET);
 			Thread.sleep(500);
 
 			int user_diceroll = current_player.get_dice_num();
 
 			user_movements(user_diceroll);
-			
-			
-
-			
-
 		}
 	}
 
 	private static void user_movements(int user_dice) {
 		int user_last_pos = current_player.get_pos();
 		int user_new_pos = user_last_pos + user_dice ;
-		
+
 		System.out.println("");
 		System.out.println(current_player.get_name() + " rolled a " + user_dice + " and moved from:");
 		System.out.println(user_last_pos + " to " + user_new_pos);
 		System.out.println("");
-		
+
 		if (user_new_pos > 25) {
 			System.out.println("Please get a number which is less than or equal to 25!");
 			System.out.println(current_player.get_name() + " returned to position : "+ user_last_pos);
@@ -446,14 +467,165 @@ public class Snakes_and_ladders {
 		else {
 			current_player.set_pos(user_new_pos);
 		}
-		
+
 		System.out.println(" ");
 		snake_checker();
 		ladder_checker();
 	}
 
-	private static void swiftbot_turn() {
-		System.out.println("lwky swiftbot's turn but skip");
+	private static void swiftbot_turn() throws InterruptedException {
+		System.out.println(DICE_ASCII_ART);
+		System.out.println(Colours.YELLOW+"DICE ROLL..."+Colours.RESET);
+		Thread.sleep(500);
+		int swiftbot_dice = current_player.get_dice_num();
+
+		System.out.println(current_player.get_name()+" rolled a " + swiftbot_dice);
+		int swiftbot_pos = current_player.get_pos();
+
+		if (current_mode.equals("B")) {
+			mode_B(swiftbot_pos);
+		}
+		else {
+			int swiftbot_new_pos = swiftbot_pos + swiftbot_dice;
+			if (swiftbot_new_pos > 25) {
+				System.out.println("Please get a number which is less than or equal to 25!");
+				System.out.println(current_player.get_name() + " returned to position : "+ swiftbot_pos);
+			}
+			else {
+				current_player.set_pos(swiftbot_pos + swiftbot_dice);
+			}
+		}
+
+		snake_checker();
+		ladder_checker();
+		swiftbot_movements();
+	}
+
+	private static void mode_B(int swiftbot_pos) throws InterruptedException {
+
+		System.out.println("Would the user like to overide the dice? (y/n)");
+
+		while (true) {
+			try {
+				Scanner text = new Scanner(System.in);
+				String user_input = text.nextLine();
+				if (user_input.equals("y")) {
+					System.out.println("Choose amount of steps in numbers: ");
+
+					while (true) {
+						int extra_steps = text.nextInt();
+
+						if (extra_steps > 0 && extra_steps <= 5 && current_player.get_pos() + extra_steps <= 25) {
+							current_player.set_pos(swiftbot_pos + extra_steps);
+							break;
+						}
+						else {
+							error("Input out of boundaries, ensure the input is within boundaries!");
+						}
+					}
+					return;
+				}
+				else if (user_input.equals("n")) {
+					return;
+				}
+
+				else {
+					error("Unusual input given, please input either y or n!");
+				}
+			}
+
+			catch (Exception e) {
+				error("input is not a Integer, please input a integer!");
+			}
+		}
+	}
+
+	private static void swiftbot_movements() throws InterruptedException {
+
+		if (current_player.get_pos() > swiftbot_physical_pos) {
+			pos_changer = 1;
+		}
+
+		else {
+			swiftBot.move(WHEEL_POWER + WHEEL_CALLIBRATION_SYMETRY, -WHEEL_POWER, TURN_90_TIME); //clockwise
+			swiftBot.move(WHEEL_POWER + WHEEL_CALLIBRATION_SYMETRY, -WHEEL_POWER, TURN_90_TIME); //clockwise
+
+			if (SwiftBot_orientation.equals("west")) {
+				SwiftBot_orientation = "east";
+			}
+
+			else if (SwiftBot_orientation.equals("east")) {
+				SwiftBot_orientation = "west";
+			}
+
+
+			pos_changer = -1;
+		}
+
+		while (current_player.get_pos() != swiftbot_physical_pos) {
+			System.out.println(swiftbot_physical_pos);
+			swiftbot_turn_movement();
+
+		}
+	}
+
+	private static void swiftbot_turn_movement() throws InterruptedException {
+		Thread.sleep(1000);
+		int current_row = (swiftbot_physical_pos - 1) / 5;
+		System.out.println("current row : " + current_row);
+		System.out.println("the cal : " + current_row % 2);
+
+
+		if (swiftbot_physical_pos % 5 == 0) {
+			System.out.println("Test: end of row reached");
+
+			if ((current_row + 1) % 2 == 0) {
+				swiftBot.move(WHEEL_POWER + WHEEL_CALLIBRATION_SYMETRY, -WHEEL_POWER, TURN_90_TIME); //clockwise
+				System.out.println("turning clockwise");
+				SwiftBot_orientation = "north";
+				Thread.sleep(500);
+				swiftBot.move(WHEEL_POWER + WHEEL_CALLIBRATION_SYMETRY, WHEEL_POWER, FORWARD_TIME);
+				System.out.println("going straight");
+				Thread.sleep(500);
+				swiftBot.move(WHEEL_POWER + WHEEL_CALLIBRATION_SYMETRY, -WHEEL_POWER, TURN_90_TIME);
+				System.out.println("turning clockwise");
+				SwiftBot_orientation = "east";
+				Thread.sleep(500);
+
+				//turn 90 degress clockwise
+				//move forward
+				//turn 90 degrees
+			}
+			else {
+
+
+
+				swiftBot.move(-(WHEEL_POWER + WHEEL_CALLIBRATION_SYMETRY), WHEEL_POWER, TURN_90_TIME); //anticlockwise
+				System.out.println("turning anticlockwise");
+				SwiftBot_orientation = "north";
+				Thread.sleep(500);
+				swiftBot.move(WHEEL_POWER + WHEEL_CALLIBRATION_SYMETRY, WHEEL_POWER, FORWARD_TIME);
+				System.out.println("going straight");
+				Thread.sleep(500);
+				swiftBot.move(-(WHEEL_POWER + WHEEL_CALLIBRATION_SYMETRY), WHEEL_POWER, TURN_90_TIME);
+				System.out.println("turning anticlockwise");
+				SwiftBot_orientation = "west";
+				Thread.sleep(500);
+
+
+				//turn 90 anticlockwise
+				//move forward
+				//turn 90 degrees anticlockwise
+			}
+			swiftbot_physical_pos += pos_changer;
+		}
+		else {
+			//swiftbot move formard
+			swiftBot.move(WHEEL_POWER + WHEEL_CALLIBRATION_SYMETRY, WHEEL_POWER, FORWARD_TIME);
+			System.out.println("going straight");
+			swiftbot_physical_pos += pos_changer;
+		}
+
 	}
 
 	private static void snake_checker() {
@@ -470,7 +642,7 @@ public class Snakes_and_ladders {
 	}
 
 	//_________input handling
-	private static String input_handler(List<String> possible_inputs) {
+	private static String input_handler(List<String> possible_inputs) throws InterruptedException {
 		swiftBot.fillButtonLights();
 		List<String> all_inputs = List.of("A","B","X","Y");
 
@@ -483,12 +655,12 @@ public class Snakes_and_ladders {
 			}
 
 			else if (all_inputs.contains(pressed_button)) { //checks if its one of the possible inputs
-				System.out.println("[Error!] invalid option selected, please select "+possible_inputs+" in the SwiftBot.");
+				error("invalid option selected, please select "+ possible_inputs +" in the SwiftBot.");
 			}
 		}
 	}
 
-	public static String input() {
+	public static String input() throws InterruptedException {
 
 		pressed_button = "";
 		try {
@@ -511,11 +683,17 @@ public class Snakes_and_ladders {
 		}
 
 		catch (Exception e) {
-			System.out.println("Error has occured!!");
+			error("Something has occured");
 			return "null";
 		}
 	}
 
+	private static void error(String message) throws InterruptedException {
+		System.out.println(Colours.BOLD +Colours.RED + "[Error!] " + message + Colours.RESET);
+		swiftBot.fillUnderlights(RED);
+		Thread.sleep(200);
+		swiftBot.disableUnderlights();
+	}
 	//________game end handling
 	private static void quit_handling() throws IOException, InterruptedException {
 		System.out.println("The current position of " + current_player.get_name() + " is " + current_player.get_pos());
@@ -537,7 +715,7 @@ public class Snakes_and_ladders {
 
 	private static void game_termination_logging() throws IOException, InterruptedException {
 		LocalDateTime myDateObj = LocalDateTime.now();
-		DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy.MM.dd.hh.mm.ss");
+		DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy.MM.dd.HH.mm.ss");
 
 		String formatted_datetime = myDateObj.format(myFormatObj);
 		String fileName = "Snake_ladders_log_" + formatted_datetime;
@@ -564,16 +742,18 @@ public class Snakes_and_ladders {
 		writer.write(formatted_datetime);
 
 		Players game_winner = current_player;
-		System.out.println(game_winner.get_name() + " is the winner!");
+		System.out.println(Colours.YELLOW + Colours.BOLD +game_winner.get_name() + " is the winner!" + Colours.RESET);
 
+		System.out.println("file location is : ");
+		System.out.println(logfile.getAbsolutePath());
 		writer.close();
-		
+
 		if (game_winner instanceof Users) {
 			swiftBot.fillUnderlights(BLUE);
 			Thread.sleep(300);
 		}
 		else if (game_winner instanceof SwiftBot_class) {
-			swiftBot.fillUnderlights(RED);
+			swiftBot.fillUnderlights(ORANGE);
 			Thread.sleep(500);
 		}
 		swiftBot.disableUnderlights();
