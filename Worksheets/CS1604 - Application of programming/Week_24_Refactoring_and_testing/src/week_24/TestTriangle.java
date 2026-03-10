@@ -14,4 +14,6 @@ public class TestTriangle {
 		tri.test();
 		scn.close();
 	}
+	
+	
 }

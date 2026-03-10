@@ -7,6 +7,16 @@ public class TriangleYN
 	{
 		a = sd1; b = sd2; c = sd3;
 	}
+	public void whichtriangle()
+	{
+		if(a == b && b == c && a == c)
+			System.out.println("Equilateral Triangle.");
+		else if(a == b || a == c || b == c)
+			System.out.println("Isosceles Triangle.");
+		else
+			System.out.println("Scalene Triangle.");
+	}
+
 	public void test()
 	{
 		if ((a + b > c) && (b + c > a) && (c + a > b))
@@ -14,4 +24,6 @@ public class TriangleYN
 		else
 			System.out.println("Invalid triangle");
 	}
+
+
 }
