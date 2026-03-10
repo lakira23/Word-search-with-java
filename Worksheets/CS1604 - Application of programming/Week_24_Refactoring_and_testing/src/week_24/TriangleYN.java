@@ -2,28 +2,39 @@ package week_24;
 
 public class TriangleYN
 {
-	int a, b, c;
-	public TriangleYN(int sd1, int sd2, int sd3)
+	int first_int, second_int, third_int, tri_base, tri_height;
+	boolean is_tri = true;
+	
+	public TriangleYN(int sd1, int sd2, int sd3, int base, int height)
 	{
-		a = sd1; b = sd2; c = sd3;
+		first_int = sd1; second_int = sd2; third_int = sd3;
+		tri_base = base; tri_height = height;
+	}
+	public void test()
+	{
+		if ((first_int + second_int > third_int) && (second_int + third_int > first_int) && (third_int + first_int > second_int))
+			System.out.println("Valid triangle");
+		else
+		{
+			System.out.println("Invalid triangle");
+			is_tri = false;
+		}
 	}
 	public void whichtriangle()
 	{
-		if(a == b && b == c && a == c)
-			System.out.println("Equilateral Triangle.");
-		else if(a == b || a == c || b == c)
-			System.out.println("Isosceles Triangle.");
-		else
-			System.out.println("Scalene Triangle.");
+		if (is_tri)
+		{
+			if(first_int == second_int && second_int == third_int)
+				System.out.println("Equilateral Triangle.");
+			else if(first_int == second_int || first_int == third_int || second_int == third_int)
+				System.out.println("Isosceles Triangle.");
+			else
+				System.out.println("Scalene Triangle.");
+		}
+		
+		double area = 0.5 * tri_base * tri_height;
+		System.out.println("Area of triangle is..." +area);
 	}
-
-	public void test()
-	{
-		if ((a + b > c) && (b + c > a) && (c + a > b))
-			System.out.println("Valid triangle");
-		else
-			System.out.println("Invalid triangle");
-	}
-
-
+	
+	
 }
