@@ -256,7 +256,7 @@ public class Snakes_and_ladders {
 			{1,2,3,4,5}}; 
 
 	static int[] BLUE = {0,0,255};
-	static int[] RED = {0,255,0};
+	static int[] RED = {255,0,0};
 	static int[] ORANGE = {255,165,0};
 
 	//___________menu
@@ -294,13 +294,22 @@ public class Snakes_and_ladders {
 
 		//makes the users
 		for (int i = 0; i < num_players - 1; i++) { //-1 cos to not include the swiftbot
-			System.out.println("Please enter your name player "+ (i+1) +" >> ");
-			Users a_user = new Users(text.nextLine());
+			while (true) {
+				System.out.println("Please enter your name player "+ (i+1) +" >> ");
+				String username = text.nextLine();
+				if (username.strip().equals("")) {
+					error("Player name cannot be blank, please enter a name");
+				}
+				else {
+					Users a_user = new Users(text.nextLine());
 
-			users_obj.add(a_user);
-			players_obj.add(a_user);
+					users_obj.add(a_user);
+					players_obj.add(a_user);
 
-			System.out.println(" ");	
+					System.out.println(" ");	
+					break;
+				}
+			}
 		}
 		System.out.println("The SwiftBot has been assigned the following name:");
 
