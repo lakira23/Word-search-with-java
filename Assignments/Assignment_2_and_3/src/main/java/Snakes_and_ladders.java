@@ -321,7 +321,7 @@ public class Snakes_and_ladders {
 
 	}
 
-	private static void Board_setup() {
+	private static void Board_setup() throws InterruptedException {
 		int num_of_snakes = 2;
 		int num_of_ladders = 2;
 
@@ -329,10 +329,21 @@ public class Snakes_and_ladders {
 		ladders_obj = new ArrayList<Ladders>();
 		connectors_obj = new ArrayList<Connectors>();
 
+		
+		//display the board
+		System.out.println("");
+		System.out.println(Colours.BOLD + Colours.CYAN +"The board will look like the following : " + Colours.RESET);
+		for (int[] each_row : board) {
+			System.out.println(each_row);
+		}
+		System.out.println("");
+		Thread.sleep(500);
+		System.out.println("");
+		
 		//makes the snakes
 		try { 
 			System.out.println("");
-			System.out.println("Snakes: ");
+			System.out.println(Colours.BOLD + Colours.YELLOW+ "Snakes: " + Colours.RESET);
 			for (int i = 0; i < num_of_snakes; i++) {
 				Snakes a_snake = new Snakes(connectors_obj);
 				snakes_obj.add(a_snake);
@@ -343,7 +354,7 @@ public class Snakes_and_ladders {
 			Thread.sleep(1000);
 
 			//makes the ladders
-			System.out.println("Ladders: ");
+			System.out.println(Colours.BOLD + Colours.GREEN + "Ladders: " + Colours.RESET);
 
 			for (int i = 0; i < num_of_ladders; i++) {
 				Ladders a_ladder = new Ladders(connectors_obj);
