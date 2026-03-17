@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
+import com.pi4j.boardinfo.util.SystemProperties;
 
 import swiftbot.Button;
 import swiftbot.SwiftBotAPI;
@@ -19,7 +20,7 @@ import swiftbot.SwiftBotAPI;
 class Connectors {
 	protected int head;
 	protected int tail;
-	
+
 	static String LADDER_ASCII_ART = ""
 			+ "o-o\r\n"
 			+ "| |\r\n"
@@ -29,7 +30,7 @@ class Connectors {
 			+ "| |\r\n"
 			+ "o-o\r\n"
 			+ "";
-	
+
 	static String SNAKE_ASCII_ART = ""
 			+ ",=e\r\n"
 			+ " `-.  \r\n"
@@ -104,11 +105,11 @@ class Connectors {
 			if (connector_type.equals("snake")) {
 				System.out.println(SNAKE_ASCII_ART);
 			}
-			
+
 			else if (connector_type.equals("ladder")) {
 				System.out.println(LADDER_ASCII_ART);
 			}
-			
+
 			System.out.println(player.get_name() + " has facen a "+connector_type+" in position "+ this.head );
 			System.out.println("Fall from square " + player.get_pos() + " to " + this.tail);
 			System.out.println("***************************************");
@@ -222,13 +223,13 @@ public class Snakes_and_ladders {
 
 	static int swiftbot_physical_pos = 1;
 	static int pos_changer;
-	
+
 	static int WHEEL_POWER = 50; //limited power to reduce slipping
-	
+
 	static int PULSE_TIME = 50; 
-	static int PULSE_COUNT_STRAIGHT = 50;
-	static int PULSE_COUNT_TURN = 14;
-	
+	static int pulse_count_straight = 50;
+	static int pulse_count_turn = 14;
+
 	static int WHEEL_OFFSET = -5;
 	static String SwiftBot_orientation = "East";
 
@@ -241,15 +242,15 @@ public class Snakes_and_ladders {
 			+ "\\' / . / /____/..\\\r\n"
 			+ " \\/___/  \\'  '\\  /\r\n"
 			+ "          \\'__'\\/\r\n";
-	
+
 	static String FIREWORKS_ASCII_ART = 
 			"    .              .   .'.     \\   /\r\n"
-			+ "  \\   /      .'. .' '.'   '  -=  o  =-\r\n"
-			+ "-=  o  =-  .'   '              /   \\\r\n"
-			+ "  /   \\                          '\r\n"
-			+ "    '\r\n"
-			+ "";
-	
+					+ "  \\   /      .'. .' '.'   '  -=  o  =-\r\n"
+					+ "-=  o  =-  .'   '              /   \\\r\n"
+					+ "  /   \\                          '\r\n"
+					+ "    '\r\n"
+					+ "";
+
 	static SwiftBotAPI swiftBot = SwiftBotAPI.INSTANCE;
 
 	static int [][] board = {	
@@ -333,7 +334,7 @@ public class Snakes_and_ladders {
 		ladders_obj = new ArrayList<Ladders>();
 		connectors_obj = new ArrayList<Connectors>();
 
-		
+
 		//display the board
 		System.out.println("");
 		System.out.println(Colours.BOLD + Colours.CYAN +"The board will look like the following : " + Colours.RESET);
@@ -343,7 +344,7 @@ public class Snakes_and_ladders {
 		System.out.println("");
 		Thread.sleep(500);
 		System.out.println("");
-		
+
 		//makes the snakes
 		try { 
 			System.out.println("");
@@ -478,8 +479,11 @@ public class Snakes_and_ladders {
 				user_turn();
 			}
 
-			if (current_player.get_pos() == 5 || current_player.get_pos() == 25) {
+			if (current_player.get_pos() == 5) {
 				quit_handling();
+			}
+			if (current_player.get_pos() == 25) {
+				game_termination_logging();
 			}
 
 			current_player_index = (current_player_index + 1) % players_obj.size(); //mimics a cyclical structure
@@ -551,9 +555,9 @@ public class Snakes_and_ladders {
 			else {
 				current_player.set_pos(swiftbot_pos + swiftbot_dice);
 			}
-			
+
 		}
-		
+
 		System.out.println("");
 		System.out.println("The SwiftBot moved from:");
 		System.out.println(swiftbot_pos + " to " + current_player.get_pos());
@@ -651,32 +655,24 @@ public class Snakes_and_ladders {
 			System.out.println("Test: end of row reached");
 
 			if ((current_row + 1) % 2 == 0) {
-				swiftbot_turn_right();
-				System.out.println("turning clockwise");
-				SwiftBot_orientation = "north";
-				
-				swiftbot_move_straight();
-				System.out.println("going straight");
-				
-				swiftbot_turn_right();
-				System.out.println("turning clockwise");
-				SwiftBot_orientation = "east";
-				
+				if (pos_changer == -1) {
+					swiftbot_turn_anticlockwise();
+				}
+				else {
+					swiftbot_turn_clockwise();
+				}
+
 				//turn 90 degress clockwise
 				//move forward
 				//turn 90 degrees
 			}
 			else {
-				swiftbot_turn_left();
-				System.out.println("turning anticlockwise");
-				SwiftBot_orientation = "north";
-				
-				swiftbot_move_straight();
-				System.out.println("going straight");
-				
-				swiftbot_turn_left();
-				System.out.println("turning anticlockwise");
-				SwiftBot_orientation = "west";
+				if (pos_changer == -1) {
+					swiftbot_turn_clockwise();
+				}
+				else {
+					swiftbot_turn_anticlockwise();
+				}
 
 				//turn 90 anticlockwise
 				//move forward
@@ -694,32 +690,58 @@ public class Snakes_and_ladders {
 	}
 
 	private static void swiftbot_move_straight() throws InterruptedException {
-		for (int i = 0; i < PULSE_COUNT_STRAIGHT; i++) {
+		for (int i = 0; i < pulse_count_straight; i++) {
 			if (i % 2 == 0) {
-            	swiftBot.move(WHEEL_POWER + WHEEL_OFFSET - 1, WHEEL_POWER, PULSE_TIME);
-            } 
-            else {
-            	swiftBot.move(WHEEL_POWER + WHEEL_OFFSET, WHEEL_POWER, PULSE_TIME);
-            }
-			
+				swiftBot.move(WHEEL_POWER + WHEEL_OFFSET - 1, WHEEL_POWER, PULSE_TIME);
+			} 
+			else {
+				swiftBot.move(WHEEL_POWER + WHEEL_OFFSET, WHEEL_POWER, PULSE_TIME);
+			}
+
 			Thread.sleep(40);
 		}
 	}
-	
+
+	private static void swiftbot_turn_clockwise() throws InterruptedException {
+		swiftbot_turn_right();
+		System.out.println("turning clockwise");
+		SwiftBot_orientation = "north";
+
+		swiftbot_move_straight();
+		System.out.println("going straight");
+
+		swiftbot_turn_right();
+		System.out.println("turning clockwise");
+		SwiftBot_orientation = "east";
+	}
+
+	private static void swiftbot_turn_anticlockwise() throws InterruptedException {
+		swiftbot_turn_left();
+		System.out.println("turning anticlockwise");
+		SwiftBot_orientation = "north";
+
+		swiftbot_move_straight();
+		System.out.println("going straight");
+
+		swiftbot_turn_left();
+		System.out.println("turning anticlockwise");
+		SwiftBot_orientation = "west";
+	}
+
 	private static void swiftbot_turn_left() throws InterruptedException {
-		for (int i = 0; i < PULSE_COUNT_TURN; i++) {
-            swiftBot.move(-WHEEL_POWER, WHEEL_POWER, PULSE_TIME);
-            Thread.sleep(40);
-        }
+		for (int i = 0; i < pulse_count_turn; i++) {
+			swiftBot.move(-WHEEL_POWER, WHEEL_POWER, PULSE_TIME);
+			Thread.sleep(40);
+		}
 	}
-	
+
 	private static void swiftbot_turn_right() throws InterruptedException {
-		for (int i = 0; i < PULSE_COUNT_TURN; i++) {
-            swiftBot.move(-WHEEL_POWER, WHEEL_POWER, PULSE_TIME);
-            Thread.sleep(40);
-        }
+		for (int i = 0; i < pulse_count_turn; i++) {
+			swiftBot.move(WHEEL_POWER, -WHEEL_POWER, PULSE_TIME);
+			Thread.sleep(40);
+		}
 	}
-	
+
 	private static void snake_checker() {
 		for (Snakes each_snake: snakes_obj) {
 			each_snake.player_connector_interaction(current_player);
@@ -853,9 +875,87 @@ public class Snakes_and_ladders {
 
 	}
 
+	//_______calibration
+	private static  void calibration() throws InterruptedException {
+		while (true) {
+			try {
+				Scanner input = new Scanner(System.in);
+				System.out.println("");
+				System.out.println(Colours.CYAN + Colours.BOLD + "Lets start by calibrating the Swiftbot's movemets! " + Colours.RESET);
+				System.out.println("enter '0' to comfirm it.....");
+				System.out.println(" ");
+
+				calibrate_straightline(input);
+				calibrate_turns(input);
+
+				System.out.println(Colours.BOLD + "calibration is done!" + Colours.RESET);
+				System.out.println(" ");
+				break;
+			}
+
+			catch (Exception e) {
+				error(e + ".Please redo it!");
+			}
+		}
+	}
+
+	private static void calibrate_straightline(Scanner input) throws InterruptedException {
+		while (true) {
+			try {
+				System.out.println(Colours.BOLD +"Calibrating straight line" + Colours.RESET);
+				System.out.println("current pulse : " + pulse_count_straight);
+
+				swiftbot_move_straight();
+
+				System.out.println("enter the new pulse count for the straight line: ");
+				int user_input = input.nextInt();
+
+				if (user_input == 0) {
+					System.out.println("The final pulse is : " + pulse_count_straight);
+					return;
+
+				}
+				else {
+					pulse_count_straight = user_input;
+				}
+			}
+			
+			catch (NumberFormatException e) {
+				error("Invalid data type used, please enter a integer!");
+			}
+		}
+	}
+
+	private static void calibrate_turns(Scanner input) throws InterruptedException {
+		while (true) {
+			try {
+				System.out.println(Colours.BOLD +"Calibrating turn" + Colours.RESET);
+				System.out.println("current pulse : " + pulse_count_turn);
+
+				swiftbot_turn_clockwise();
+
+				System.out.println("enter the new pulse count for the turn: ");
+				int user_input = input.nextInt();
+
+				if (user_input == 0) {
+					System.out.println("The final pulse is : " + pulse_count_turn);
+					return;
+
+				}
+				else {
+					pulse_count_turn = user_input;
+				}
+			}
+			
+			catch (NumberFormatException e) {
+				error("Invalid data type used, please enter a integer!");
+			}
+		}
+	}
 
 	public static void main(String[] args) throws InterruptedException, IOException {
 
+		calibration();
 		menu();
 		main_game();
 		System.exit(0);
