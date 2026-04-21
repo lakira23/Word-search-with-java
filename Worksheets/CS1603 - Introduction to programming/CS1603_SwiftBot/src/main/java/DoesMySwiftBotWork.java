@@ -62,7 +62,7 @@ public class DoesMySwiftBotWork {
 
 			// reads user input and performs corresponding action
 			String ans = reader.next();
-
+			
 			switch (ans) {
 
 			// Testing Camera
