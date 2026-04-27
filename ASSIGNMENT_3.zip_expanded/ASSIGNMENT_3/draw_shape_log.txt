@@ -1,0 +1,14 @@
+=== Draw Shape Log ===
+
+Shapes drawn in order:
+Square: 16 (time: 3580 ms)
+Triangle: 16, 30, 24 (angles: 32.09, 95.08, 52.83; time: 2455 ms)
+
+Largest shape by area:
+Square: 16
+
+Most frequent shape:
+Square: 1 times
+
+Average time:
+3017 ms
