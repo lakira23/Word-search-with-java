@@ -44,7 +44,7 @@ public class Menu {
 
 
 				if (ans >= 0 && ans < taskList.length) {
-					reader.close();
+
 					Thread.sleep(1000);
 					return ans;
 				} else {
@@ -83,7 +83,8 @@ public class Menu {
 				break;
 			}
 			case 3: {
-				Snakes_and_ladders.run_snakes_and_ladders(args);
+				Snakes_and_ladders task_3 = new Snakes_and_ladders();
+				task_3.run_snakes_and_ladders(args);
 				break;
 			}
 			case 4: {
@@ -115,7 +116,7 @@ public class Menu {
 				break;
 			}
 			default: {
-				System.out.println("ERROR: Please enter a valid number.");
+				System.out.println(Colours.RED + Colours.BOLD+"ERROR: Please enter a valid number." + Colours.RESET);
 				Thread.sleep(2000);
 				break;
 			}
