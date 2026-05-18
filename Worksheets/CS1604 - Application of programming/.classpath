@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="src" path="week_19_Image_processing/src"/>
-	<classpathentry kind="output" path="week_19_Image_processing/bin"/>
-</classpath>
